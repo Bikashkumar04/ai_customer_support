@@ -25,3 +25,8 @@ def get_db() -> Session:
         yield db
     finally:
         db.close()
+
+
+# Import every mapped model once the declarative base exists. This ensures
+# string-based SQLAlchemy relationships are registered before the first query.
+from app import models as _models  # noqa: E402,F401

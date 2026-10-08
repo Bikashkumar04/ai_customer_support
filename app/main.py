@@ -4,8 +4,10 @@ from qdrant_client import QdrantClient
 from sqlalchemy import text
 
 from app.auth.routes import router as auth_router
+from app.conversation.routes import router as conversation_router
 from app.core.config import settings
 from app.database import engine
+from app.user.routes import router as user_router
 
 app = FastAPI(
     title=settings.app_name,
@@ -21,6 +23,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(user_router, prefix="/api/v1")
+app.include_router(conversation_router, prefix="/api/v1")
 
 
 @app.get("/")

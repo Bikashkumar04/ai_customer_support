@@ -1,5 +1,18 @@
 import axios from "axios";
 
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const detail = error.response?.data?.detail;
+    if (typeof detail === "string" && detail.trim()) return detail;
+    if (Array.isArray(detail) && detail.length > 0) {
+      const firstError = detail[0] as { msg?: unknown };
+      if (typeof firstError.msg === "string") return firstError.msg;
+    }
+  }
+
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000",
   timeout: 15000,

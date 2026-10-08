@@ -53,6 +53,19 @@ class UserRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class UserProfileUpdate(BaseModel):
+    first_name: str | None = Field(default=None, min_length=1, max_length=100)
+    last_name: str | None = Field(default=None, min_length=1, max_length=100)
+    email: EmailStr | None = None
+
+    @field_validator("first_name", "last_name")
+    @classmethod
+    def strip_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return value.strip()
+
+
 class TokenPair(BaseModel):
     access_token: str
     refresh_token: str

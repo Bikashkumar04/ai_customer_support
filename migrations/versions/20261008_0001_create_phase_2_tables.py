@@ -56,20 +56,43 @@ def upgrade() -> None:
     ticket_status.create(bind, checkfirst=True)
     ticket_priority.create(bind, checkfirst=True)
 
-    op.create_table(
-        "users",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("first_name", sa.String(length=100), nullable=False),
-        sa.Column("last_name", sa.String(length=100), nullable=False),
-        sa.Column("email", sa.String(length=255), nullable=False),
-        sa.Column("password_hash", sa.String(length=255), nullable=False),
-        sa.Column("role", user_role, server_default="CUSTOMER", nullable=False),
-        sa.Column("is_active", sa.Boolean(), server_default="true", nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
+    inspector = sa.inspect(bind)
+    if "users" in inspector.get_table_names():
+        # Phase 1 created a legacy users table. Upgrade it in place so existing
+        # local data survives the Phase 2 model transition.
+        columns = {column["name"] for column in inspector.get_columns("users")}
+        if "password" in columns and "password_hash" not in columns:
+            op.alter_column("users", "password", new_column_name="password_hash")
+        if "enabled" in columns and "is_active" not in columns:
+            op.alter_column("users", "enabled", new_column_name="is_active")
+        if "role" in columns:
+            op.execute(
+                "ALTER TABLE users ALTER COLUMN role TYPE user_role "
+                "USING role::text::user_role"
+            )
+        for column in ("created_at", "updated_at"):
+            if column in columns:
+                op.execute(
+                    f"ALTER TABLE users ALTER COLUMN {column} TYPE TIMESTAMP WITH TIME ZONE "
+                    f"USING {column} AT TIME ZONE 'UTC'"
+                )
+        op.alter_column("users", "is_active", server_default=sa.text("true"))
+    else:
+        op.create_table(
+            "users",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("first_name", sa.String(length=100), nullable=False),
+            sa.Column("last_name", sa.String(length=100), nullable=False),
+            sa.Column("email", sa.String(length=255), nullable=False),
+            sa.Column("password_hash", sa.String(length=255), nullable=False),
+            sa.Column("role", user_role, server_default="CUSTOMER", nullable=False),
+            sa.Column("is_active", sa.Boolean(), server_default="true", nullable=False),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+            sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+            sa.PrimaryKeyConstraint("id"),
+        )
+    if "ix_users_email" not in {index["name"] for index in inspector.get_indexes("users")}:
+        op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
 
     op.create_table(
         "conversations",
