@@ -1,0 +1,91 @@
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+
+*.egg-info/
+*.egg
+dist/
+build/
+
+# =========================
+# Virtual Environment
+# =========================
+.venv/
+venv/
+env/
+ENV/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# FastAPI / Python logs
+# =========================
+*.log
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend build
+dist/
+build/
+.next/
+.nuxt/
+.vite/
+
+# =========================
+# IDE / Editors
+# =========================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+*.iml
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Coverage
+# =========================
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+*.swp
+*.swo
